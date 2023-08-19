@@ -65,23 +65,42 @@ class ComprobanteController extends Controller
                 return response()->json(['msg' => 'No se proporcionó un archivo XML'], 400);
             }
         } catch (\Throwable $th) {
-            // Puedes agregar manejo de msges aquí
-            return response()->json(['msg' => 'Ocurrió un msg al procesar el archivo XML'], 500);
+            return response()->json(['msg' => 'Ocurrió un error al procesar el archivo XML'], 500);
         }
     }
     public function comprobanteById($id_comprobante ,Request $request){
         try {
             $comprobante = DB::table('comprobantes')->find($id_comprobante);
+            $comprobante->items = DB::table('comprobante_items')->where('comprobante_id',$comprobante->id)->get();
             if(!$comprobante){
                 return response()->json(['msg' => 'No se encontro ningun comprobante con ese id'], 400);
             }
             if ($comprobante->user_id !== auth()->user()->id) {
                 return response()->json(['msg' => 'No tienes permiso para acceder a este comprobante.'], 403);
             }
-            return $comprobante;
+            return response()->json($comprobante);
         } catch (\Throwable $th) {
-            // Puedes agregar manejo de msges aquí
-            return response()->json(['msg' => 'Ocurrió un msg en comprobanteById'], 500);
+            return response()->json(['msg' => 'Ocurrió un error en comprobanteById'], 500);
         }
     } 
+    public function deleteComprobanteById($id_comprobante ,Request $request){
+        try {
+            $comprobante = DB::table('comprobantes')->find($id_comprobante);
+            if (!$comprobante) {
+                return response()->json(['error' => 'No se encontró ningún comprobante con ese ID'], 404);
+            }
+            DB::table('comprobantes')->where('id', $id_comprobante)->delete();
+            return response()->json([ 'msg' => 'Se elimino correctamente el comprobante con ID ' . $id_comprobante]); 
+        } catch (\Throwable $th) {
+            return response()->json(['msg' => 'Ocurrió un error en deleteComprobanteById'], 500);
+        }
+    }
+    public function comprobanteAll(){
+        try {
+            $montoTotal = DB::table('comprobantes')->sum('importeTotal');
+            return response()->json(['msg' => 'Success','montoTotal' => $montoTotal]);
+        } catch (\Throwable $th) {
+            return response()->json(['msg' => 'Ocurrió un error en comprobanteAll'], 500);
+        }
+    }
 }
