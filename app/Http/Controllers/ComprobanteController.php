@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Models\Comprobante;
+use App\Models\ComprobanteItem;
 
 class ComprobanteController extends Controller
 {
@@ -25,6 +28,19 @@ class ComprobanteController extends Controller
                 $ventaTotal = (string) $xml->xpath('//cac:LegalMonetaryTotal/cbc:LineExtensionAmount')[0];
                 $items = [];
 
+                $comprobante = new Comprobante();
+                $comprobante->user_id = auth()->user()->id;
+                $comprobante->fechaEmision = $issueDate . " " . $issueTime; 
+                $comprobante->nameEmisor = $nameEmisor;  
+                $comprobante->rucEmisor = $rucEmisor;  
+                $comprobante->nameReceptor = $nameReceptor;  
+                $comprobante->rucReceptor = $rucReceptor;  
+                $comprobante->ventaTotal = $ventaTotal;  
+                $comprobante->ventaTotalImpuesto = $ventaTotalImpuesto;  
+                $comprobante->otrosPagos = $otrosPagos;  
+                $comprobante->importeTotal = $importeTotal;
+                $comprobante->save();
+
                 foreach ($xml->xpath('//cac:InvoiceLine') as $invoiceLine) {
                     $productoName = (string) $invoiceLine->xpath('cac:Item/cbc:Description')[0]; 
                     $productoPrecio = (string) $invoiceLine->xpath('cac:Price/cbc:PriceAmount')[0]; 
@@ -33,30 +49,39 @@ class ComprobanteController extends Controller
                         'productoName' => $productoName,
                         'productoPrecio' => $productoPrecio,
                     ];
+                    $comprobanteItem = new ComprobanteItem();
+                    $comprobanteItem->comprobante_id = $comprobante->id;
+                    $comprobanteItem->productoName = $productoName;
+                    $comprobanteItem->productoPrecio = $productoPrecio;
+                    $comprobanteItem->save();
                 }
-
-
-
+            
                 return response()->json(
                     [
-                        'FechaEmision' => $issueDate . " " . $issueTime,
-                        'nameEmisor' => $nameEmisor,
-                        'rucEmisor' => $rucEmisor,
-                        'nameReceptor' => $nameReceptor,
-                        'rucReceptor' => $rucReceptor,
-                        'ventaTotal' => $ventaTotal,
-                        'ventaTotalImpuesto' => $ventaTotalImpuesto,
-                        'otrosPagos' => $otrosPagos,
-                        'importeTotal' => $importeTotal,
-                        'items' => $items,
+                        'msg' => 'Se guardo correctamente',
                     ]
                 );
             } else {
-                return response()->json(['error' => 'No se proporcionó un archivo XML'], 400);
+                return response()->json(['msg' => 'No se proporcionó un archivo XML'], 400);
             }
         } catch (\Throwable $th) {
-            // Puedes agregar manejo de errores aquí
-            return response()->json(['error' => 'Ocurrió un error al procesar el archivo XML'], 500);
+            // Puedes agregar manejo de msges aquí
+            return response()->json(['msg' => 'Ocurrió un msg al procesar el archivo XML'], 500);
         }
     }
+    public function comprobanteById($id_comprobante ,Request $request){
+        try {
+            $comprobante = DB::table('comprobantes')->find($id_comprobante);
+            if(!$comprobante){
+                return response()->json(['msg' => 'No se encontro ningun comprobante con ese id'], 400);
+            }
+            if ($comprobante->user_id !== auth()->user()->id) {
+                return response()->json(['msg' => 'No tienes permiso para acceder a este comprobante.'], 403);
+            }
+            return $comprobante;
+        } catch (\Throwable $th) {
+            // Puedes agregar manejo de msges aquí
+            return response()->json(['msg' => 'Ocurrió un msg en comprobanteById'], 500);
+        }
+    } 
 }

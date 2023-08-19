@@ -18,4 +18,5 @@ use App\Http\Controllers\ComprobanteController;
 Route::post('/login', [AutenticationController::class, 'login']);
 Route::group(['middleware' => ['jwt.verify']], function() {
     Route::post('/comprobante', [ComprobanteController::class, 'registrarComprobante']);
+    Route::get('/comprobante/{id_comprobante}', [ComprobanteController::class, 'comprobanteById']);
 });

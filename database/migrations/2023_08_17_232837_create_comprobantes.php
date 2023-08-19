@@ -17,8 +17,16 @@ class CreateComprobantes extends Migration
             Schema::create('comprobantes', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('user_id');
-                $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
-                $table->string('xml_data');
+                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+                $table->dateTime('fechaEmision');
+                $table->string('nameEmisor');
+                $table->string('rucEmisor');
+                $table->string('nameReceptor');
+                $table->string('rucReceptor');
+                $table->float('ventaTotal', 10, 3);
+                $table->float('ventaTotalImpuesto', 10, 3);
+                $table->float('otrosPagos', 10, 3);
+                $table->float('importeTotal', 10, 3);
                 $table->timestamps();
             });
         }
