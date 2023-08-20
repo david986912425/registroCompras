@@ -10,15 +10,12 @@ use Illuminate\Notifications\Notification;
 class RegistrarComprobante extends Notification
 {
     use Queueable;
-
-    /**
-     * Create a new notification instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    protected $comprobante;
+    protected $items;
+    public function __construct($comprobante,$items)
     {
-        //
+        $this->comprobante = $comprobante;
+        $this->items = $items;
     }
 
     /**
@@ -40,10 +37,12 @@ class RegistrarComprobante extends Notification
      */
     public function toMail($notifiable)
     {
-        // dd('1234');
         return (new MailMessage)
             ->subject('Comprobante Subido')
-            ->view('emails.comprobanteRegister');
+            ->view('emails.comprobanteRegister', [
+                'comprobante' => $this->comprobante,
+                'items' => $this->items,
+            ]);
     }
 
     /**

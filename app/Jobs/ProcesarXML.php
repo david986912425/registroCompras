@@ -74,7 +74,7 @@ class ProcesarXML implements ShouldQueue
         }
         
         
-        auth()->user()->notify(new RegistrarComprobante($comprobante));
+        auth()->user()->notify(new RegistrarComprobante($comprobante,$items));
             
     }
 }
