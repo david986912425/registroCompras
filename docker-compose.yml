@@ -18,7 +18,7 @@ services:
             - test-network
 
     web:
-        image: nginx:1.19.4
+        image: nginx:1.25
         container_name: test-nginx
         restart: unless-stopped
         ports:
@@ -30,7 +30,7 @@ services:
             - test-network
 
     db:
-        image: mysql:5.7
+        image: mysql:8.0
         container_name: test-db
         restart: unless-stopped
         ports:
@@ -38,8 +38,8 @@ services:
         volumes:
             - dbdata:/var/lib/mysql
         environment:
-            - MYSQL_DATABASE=${DB_DATABASE:-homestead}
-            - MYSQL_USER=${DB_USERNAME:-homestead}
+            - MYSQL_DATABASE=${DB_DATABASE:-registroCompras}
+            - MYSQL_USER=${DB_USERNAME:-registroCompras}
             - MYSQL_PASSWORD=${DB_PASSWORD:-secret}
             - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-secret}
         networks:
@@ -53,7 +53,7 @@ services:
         environment:
             - PMA_ARBITRARY=1
             - PMA_HOST=${DB_HOST:-db}
-            - PMA_USER=${DB_USERNAME:-homestead}
+            - PMA_USER=${DB_USERNAME:-registroCompras}
             - PMA_PASSWORD=${DB_PASSWORD:-secret}
         networks:
             - test-network

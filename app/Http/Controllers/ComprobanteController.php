@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Comprobante;
 use App\Models\ComprobanteItem;
+use App\Notifications\RegistrarComprobante;
+use Illuminate\Support\Facades\Notification;
 
 class ComprobanteController extends Controller
 {
@@ -55,6 +57,8 @@ class ComprobanteController extends Controller
                     $comprobanteItem->productoPrecio = $productoPrecio;
                     $comprobanteItem->save();
                 }
+                
+                Notification::send(auth()->user(), new RegistrarComprobante($comprobante));
             
                 return response()->json(
                     [
