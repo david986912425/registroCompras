@@ -11,4 +11,5 @@ Route::group(['middleware' => ['jwt.verify']], function() {
     Route::get('/comprobante/{id_comprobante}', [ComprobanteController::class, 'comprobanteById']);
     Route::delete('/comprobante/{id_comprobante}', [ComprobanteController::class, 'deleteComprobanteById']);
     Route::get('/comprobantes/total', [ComprobanteController::class, 'comprobanteAll']);
+    Route::get('/items/total', [ComprobanteController::class, 'itemsAll']);
 });

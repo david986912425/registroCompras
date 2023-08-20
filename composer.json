@@ -5,11 +5,15 @@
     "keywords": ["framework", "laravel"],
     "license": "MIT",
     "require": {
-        "php": "^7.3|^8.0",
+        "php": "^7.3|^8.1",
         "darkaonline/l5-swagger": "^8.5",
         "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
+        "illuminate/contracts": "^8.31",
+        "illuminate/queue": "^8.17",
+        "illuminate/support": "^8.17",
         "laravel/framework": "^8.75",
+        "laravel/horizon": "^5.19",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "tymon/jwt-auth": "^1.0"

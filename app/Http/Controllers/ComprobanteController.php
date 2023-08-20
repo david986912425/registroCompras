@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Comprobante;
-use App\Models\ComprobanteItem;
-use App\Notifications\RegistrarComprobante;
 use Illuminate\Support\Facades\Notification;
+use App\Jobs\ProcesarXML;
 /**
  * @OA\Info(
- *      version="1.0.0", 
- *      title="L5 OpenApi documentación de Enterprises",
- *      description="L5 Swagger OpenApi description para enterprises.",
+ *      version="1.0.0",
+ *      title="Documentación Registro de Comprobantes",
+ *      description="Documentación de la API para el manejo de comprobantes.",
+ *      @OA\Contact(
+ *          email="dm7659746@gmail.com",
+ *          name="Equipo de Desarrollo"
+ *      ),
  * )
  */
 class ComprobanteController extends Controller
@@ -57,62 +60,23 @@ class ComprobanteController extends Controller
      */
     public function registrarComprobante(Request $request){
         try {
-            if ($request->hasFile('file_xml')) {
-                $xmlFile = $request->file('file_xml');
-                $xmlContent = file_get_contents($xmlFile->path());
-                
-                $xml = simplexml_load_string($xmlContent);
-    
-                $issueDate = (string) $xml->xpath('//cbc:IssueDate')[0];
-                $issueTime = (string) $xml->xpath('//cbc:IssueTime')[0]; 
-                $nameEmisor = (string) $xml->xpath('//cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName')[0];
-                $rucEmisor = (string) $xml->xpath('//cac:AccountingSupplierParty/cac:Party/cac:PartyIdentification/cbc:ID')[0]; 
-                $nameReceptor = (string) $xml->xpath('//cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName')[0];
-                $rucReceptor = (string) $xml->xpath('//cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID')[0]; 
-                $importeTotal = (string) $xml->xpath('//cac:LegalMonetaryTotal/cbc:PayableAmount')[0];
-                $otrosPagos = (string) $xml->xpath('//cac:LegalMonetaryTotal/cbc:ChargeTotalAmount')[0];
-                $ventaTotalImpuesto = (string) $xml->xpath('//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount')[0];
-                $ventaTotal = (string) $xml->xpath('//cac:LegalMonetaryTotal/cbc:LineExtensionAmount')[0];
-                $items = [];
-
-                $comprobante = new Comprobante();
-                $comprobante->user_id = auth()->user()->id;
-                $comprobante->fechaEmision = $issueDate . " " . $issueTime; 
-                $comprobante->nameEmisor = $nameEmisor;  
-                $comprobante->rucEmisor = $rucEmisor;  
-                $comprobante->nameReceptor = $nameReceptor;  
-                $comprobante->rucReceptor = $rucReceptor;  
-                $comprobante->ventaTotal = $ventaTotal;  
-                $comprobante->ventaTotalImpuesto = $ventaTotalImpuesto;  
-                $comprobante->otrosPagos = $otrosPagos;  
-                $comprobante->importeTotal = $importeTotal;
-                $comprobante->save();
-
-                foreach ($xml->xpath('//cac:InvoiceLine') as $invoiceLine) {
-                    $productoName = (string) $invoiceLine->xpath('cac:Item/cbc:Description')[0]; 
-                    $productoPrecio = (string) $invoiceLine->xpath('cac:Price/cbc:PriceAmount')[0]; 
-
-                    $items[] = [
-                        'productoName' => $productoName,
-                        'productoPrecio' => $productoPrecio,
-                    ];
-                    $comprobanteItem = new ComprobanteItem();
-                    $comprobanteItem->comprobante_id = $comprobante->id;
-                    $comprobanteItem->productoName = $productoName;
-                    $comprobanteItem->productoPrecio = $productoPrecio;
-                    $comprobanteItem->save();
-                }
-                
-                auth()->user()->notify(new RegistrarComprobante($comprobante));
-            
-                return response()->json(
-                    [
-                        'msg' => 'Se guardo correctamente',
-                    ]
-                );
-            } else {
-                return response()->json(['msg' => 'No se proporcionó un archivo XML'], 400);
+            $files = $request->allFiles();
+            foreach ($files as $fieldName => $fileArray) {
+                $xmlFile = $request->file($fieldName);
+                $xmlContent = file_get_contents($xmlFile->path());  
+                ProcesarXML::dispatch($xmlContent)->onQueue('addXML');
             }
+            
+            return response()->json(
+                [
+                    'msg' => 'Se guardaron correctamente los archivos',
+                ]
+            );
+            // if ($request->hasFile('file_xml')) {
+            //     $xmlFile = $request->file('file_xml');
+            // } else {
+            //     return response()->json(['msg' => 'No se proporcionó un archivo XML'], 400);
+            // }
         } catch (\Throwable $th) {
             return response()->json(['msg' => 'Ocurrió un error al procesar el archivo XML'], 500);
         }
@@ -193,6 +157,58 @@ class ComprobanteController extends Controller
             return response()->json(['msg' => 'Ocurrió un error en comprobanteById'], 500);
         }
     } 
+    /**
+     * @OA\Delete(
+     *     path="/api/comprobantes/{id_comprobante}",
+     *     summary="Eliminar un comprobante por ID",
+     *     tags={"Comprobantes"},
+     *     @OA\Parameter(
+     *         name="id_comprobante",
+     *         in="path",
+     *         required=true,
+     *         description="ID del comprobante a eliminar",
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Comprobante eliminado exitosamente",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="msg",
+     *                 type="string",
+     *                 example="Se eliminó correctamente el comprobante con ID {id_comprobante}"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Comprobante no encontrado",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="error",
+     *                 type="string",
+     *                 example="No se encontró ningún comprobante con ese ID"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error interno del servidor",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="msg",
+     *                 type="string",
+     *                 example="Ocurrió un error en deleteComprobanteById"
+     *             )
+     *         )
+     *     ),
+     * )
+     */
     public function deleteComprobanteById($id_comprobante ,Request $request){
         try {
             $comprobante = DB::table('comprobantes')->find($id_comprobante);
@@ -205,12 +221,66 @@ class ComprobanteController extends Controller
             return response()->json(['msg' => 'Ocurrió un error en deleteComprobanteById'], 500);
         }
     }
+    /**
+     * @OA\Get(
+     *     path="/api/comprobantes/all",
+     *     summary="Obtener el monto total de todos los comprobantes",
+     *     tags={"Comprobantes"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Monto total obtenido exitosamente",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="msg",
+     *                 type="string",
+     *                 example="Success"
+     *             ),
+     *             @OA\Property(
+     *                 property="montoTotal",
+     *                 type="number",
+     *                 format="float",
+     *                 example=12345.67
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error interno del servidor",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="msg",
+     *                 type="string",
+     *                 example="Ocurrió un error en comprobanteAll"
+     *             )
+     *         )
+     *     ),
+     * )
+     */
     public function comprobanteAll(){
         try {
-            $montoTotal = DB::table('comprobantes')->sum('importeTotal');
+            $montoTotal = DB::table('comprobantes')
+            ->where('user_id', auth()->user()->id)
+            ->sum('importeTotal');
             return response()->json(['msg' => 'Success','montoTotal' => $montoTotal]);
         } catch (\Throwable $th) {
             return response()->json(['msg' => 'Ocurrió un error en comprobanteAll'], 500);
+        }
+    }
+    public function itemsAll(){
+        try {
+            $id_comprobantes = DB::table('comprobantes')
+            ->where('user_id', auth()->user()->id)
+            ->pluck('id')
+            ->toArray();
+            
+            $montoTotalItem = DB::table('comprobante_items')
+            ->whereIn('comprobante_id', $id_comprobantes)
+            ->sum('productoPrecio');
+            return response()->json(['msg' => 'Success','montoTotalItems' => $montoTotalItem]);
+        } catch (\Throwable $th) {
+            return response()->json(['msg' => 'Ocurrió un error en itemsAll'], 500);
         }
     }
 }

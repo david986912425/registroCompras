@@ -1,8 +1,12 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "L5 OpenApi documentación de Enterprises",
-        "description": "L5 Swagger OpenApi description para enterprises.",
+        "title": "Documentación Registro de Comprobantes",
+        "description": "Documentación de la API para el manejo de comprobantes.",
+        "contact": {
+            "name": "Equipo de Desarrollo",
+            "email": "dm7659746@gmail.com"
+        },
         "version": "1.0.0"
     },
     "paths": {
@@ -283,6 +287,122 @@
                                         "msg": {
                                             "type": "string",
                                             "example": "Ocurrió un error al obtener el comprobante"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Comprobantes"
+                ],
+                "summary": "Eliminar un comprobante por ID",
+                "operationId": "e604c5339665d7a2e28198864f57394f",
+                "parameters": [
+                    {
+                        "name": "id_comprobante",
+                        "in": "path",
+                        "description": "ID del comprobante a eliminar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comprobante eliminado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string",
+                                            "example": "Se eliminó correctamente el comprobante con ID {id_comprobante}"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Comprobante no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "No se encontró ningún comprobante con ese ID"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string",
+                                            "example": "Ocurrió un error en deleteComprobanteById"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/comprobantes/all": {
+            "get": {
+                "tags": [
+                    "Comprobantes"
+                ],
+                "summary": "Obtener el monto total de todos los comprobantes",
+                "operationId": "f89ef33874e26894eecbd961ab5c01b0",
+                "responses": {
+                    "200": {
+                        "description": "Monto total obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string",
+                                            "example": "Success"
+                                        },
+                                        "montoTotal": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 12345.67
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string",
+                                            "example": "Ocurrió un error en comprobanteAll"
                                         }
                                     },
                                     "type": "object"
