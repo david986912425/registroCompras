@@ -7,9 +7,54 @@ use App\Models\Comprobante;
 use App\Models\ComprobanteItem;
 use App\Notifications\RegistrarComprobante;
 use Illuminate\Support\Facades\Notification;
-
+/**
+ * @OA\Info(
+ *      version="1.0.0", 
+ *      title="L5 OpenApi documentación de Enterprises",
+ *      description="L5 Swagger OpenApi description para enterprises.",
+ * )
+ */
 class ComprobanteController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/registrar-comprobante",
+     *     summary="Registrar un comprobante",
+     *     description="Registrar un comprobante utilizando un archivo XML",
+     *     tags={"Comprobantes"},
+     *     @OA\RequestBody(
+     *         description="Archivo XML del comprobante",
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="file_xml", type="file")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Comprobante registrado exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="msg", type="string", example="Se guardó correctamente")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Archivo XML no proporcionado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="msg", type="string", example="No se proporcionó un archivo XML")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error al procesar el archivo XML",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="msg", type="string", example="Ocurrió un error al procesar el archivo XML")
+     *         )
+     *     )
+     * )
+     */
     public function registrarComprobante(Request $request){
         try {
             if ($request->hasFile('file_xml')) {
@@ -58,7 +103,7 @@ class ComprobanteController extends Controller
                     $comprobanteItem->save();
                 }
                 
-                Notification::send(auth()->user(), new RegistrarComprobante($comprobante));
+                auth()->user()->notify(new RegistrarComprobante($comprobante));
             
                 return response()->json(
                     [
@@ -72,6 +117,67 @@ class ComprobanteController extends Controller
             return response()->json(['msg' => 'Ocurrió un error al procesar el archivo XML'], 500);
         }
     }
+    /**
+     * @OA\Get(
+     *     path="/api/comprobantes/{id_comprobante}",
+     *     summary="Obtener un comprobante por su ID",
+     *     description="Obtener los detalles de un comprobante por su ID",
+     *     tags={"Comprobantes"},
+     *     @OA\Parameter(
+     *         name="id_comprobante",
+     *         in="path",
+     *         description="ID del comprobante",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Comprobante obtenido exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer"),
+     *             @OA\Property(property="user_id", type="integer"),
+     *             @OA\Property(property="fechaEmision", type="string"),
+     *             @OA\Property(property="nameEmisor", type="string"),
+     *             @OA\Property(property="rucEmisor", type="string"),
+     *             @OA\Property(property="nameReceptor", type="string"),
+     *             @OA\Property(property="rucReceptor", type="string"),
+     *             @OA\Property(property="ventaTotal", type="string"),
+     *             @OA\Property(property="ventaTotalImpuesto", type="string"),
+     *             @OA\Property(property="otrosPagos", type="string"),
+     *             @OA\Property(property="importeTotal", type="string"),
+     *             @OA\Property(property="items", type="array", @OA\Items(
+     *                 @OA\Property(property="id", type="integer"),
+     *                 @OA\Property(property="comprobante_id", type="integer"),
+     *                 @OA\Property(property="productoName", type="string"),
+     *                 @OA\Property(property="productoPrecio", type="string")
+     *             ))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Comprobante no encontrado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="msg", type="string", example="No se encontró ningún comprobante con ese id")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="No tienes permiso para acceder a este comprobante",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="msg", type="string", example="No tienes permiso para acceder a este comprobante")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error al obtener el comprobante",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="msg", type="string", example="Ocurrió un error al obtener el comprobante")
+     *         )
+     *     )
+     * )
+     */
     public function comprobanteById($id_comprobante ,Request $request){
         try {
             $comprobante = DB::table('comprobantes')->find($id_comprobante);

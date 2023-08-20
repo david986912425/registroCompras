@@ -1,0 +1,297 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "L5 OpenApi documentación de Enterprises",
+        "description": "L5 Swagger OpenApi description para enterprises.",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Iniciar sesión",
+                "description": "Iniciar sesión utilizando credenciales de usuario",
+                "operationId": "8bea4e648e2a827ac592557e11eb2020",
+                "requestBody": {
+                    "description": "Credenciales de inicio de sesión",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "usuario@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secretpassword"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Inicio de sesión exitoso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "access_token": {
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGciOi..."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Credenciales inválidas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Por favor, verifique su email o contraseña"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/registrar-comprobante": {
+            "post": {
+                "tags": [
+                    "Comprobantes"
+                ],
+                "summary": "Registrar un comprobante",
+                "description": "Registrar un comprobante utilizando un archivo XML",
+                "operationId": "699f892f83b2ae61d1bf4f456da2f458",
+                "requestBody": {
+                    "description": "Archivo XML del comprobante",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file_xml": {
+                                        "type": "file"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Comprobante registrado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string",
+                                            "example": "Se guardó correctamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Archivo XML no proporcionado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string",
+                                            "example": "No se proporcionó un archivo XML"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error al procesar el archivo XML",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string",
+                                            "example": "Ocurrió un error al procesar el archivo XML"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/comprobantes/{id_comprobante}": {
+            "get": {
+                "tags": [
+                    "Comprobantes"
+                ],
+                "summary": "Obtener un comprobante por su ID",
+                "description": "Obtener los detalles de un comprobante por su ID",
+                "operationId": "8cadf2f481bbd4ed7711c6fc0847de65",
+                "parameters": [
+                    {
+                        "name": "id_comprobante",
+                        "in": "path",
+                        "description": "ID del comprobante",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comprobante obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "user_id": {
+                                            "type": "integer"
+                                        },
+                                        "fechaEmision": {
+                                            "type": "string"
+                                        },
+                                        "nameEmisor": {
+                                            "type": "string"
+                                        },
+                                        "rucEmisor": {
+                                            "type": "string"
+                                        },
+                                        "nameReceptor": {
+                                            "type": "string"
+                                        },
+                                        "rucReceptor": {
+                                            "type": "string"
+                                        },
+                                        "ventaTotal": {
+                                            "type": "string"
+                                        },
+                                        "ventaTotalImpuesto": {
+                                            "type": "string"
+                                        },
+                                        "otrosPagos": {
+                                            "type": "string"
+                                        },
+                                        "importeTotal": {
+                                            "type": "string"
+                                        },
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "comprobante_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "productoName": {
+                                                        "type": "string"
+                                                    },
+                                                    "productoPrecio": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Comprobante no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string",
+                                            "example": "No se encontró ningún comprobante con ese id"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No tienes permiso para acceder a este comprobante",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string",
+                                            "example": "No tienes permiso para acceder a este comprobante"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error al obtener el comprobante",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "msg": {
+                                            "type": "string",
+                                            "example": "Ocurrió un error al obtener el comprobante"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
